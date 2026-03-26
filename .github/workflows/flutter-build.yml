@@ -41,6 +41,10 @@ env:
   ARMV7_VCPKG_COMMIT_ID: "6f29f12e82a8293156836ad81cc9bf5af41fe836" # 2025.01.13, got "/opt/artifacts/vcpkg/vcpkg: No such file or directory" with latest version
   VERSION: "1.4.6"
   NDK_VERSION: "r28c"
+  RUSTDESK_DEFAULT_ID_SERVER: "8.129.30.95"
+  RUSTDESK_DEFAULT_RELAY_SERVER: "8.129.30.95"
+  RUSTDESK_DEFAULT_KEY: "F1QKOhqiRaa0A6Y49pyFizGJPUzCX5CI9isYTaS08qo="
+  BUILD_WINDOWS_ONLY: "true"
   #signing keys env variable checks
   ANDROID_SIGNING_KEY: "${{ secrets.ANDROID_SIGNING_KEY }}"
   MACOS_P12_BASE64: "${{ secrets.MACOS_P12_BASE64 }}"
@@ -433,7 +437,7 @@ jobs:
             ./SignOutput/rustdesk-*.exe
 
   build-rustdesk-ios:
-    if: ${{ inputs.upload-artifact }}
+    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
     name: build rustdesk ios ipa
     runs-on: ${{ matrix.job.os }}
     needs: [generate-bridge]
@@ -553,6 +557,7 @@ jobs:
 
 
   build-for-macOS:
+    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' }}
     name: ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
     needs: [generate-bridge]
@@ -772,24 +777,11 @@ jobs:
 
   publish_unsigned:
     needs:
-      - build-for-macOS
       - build-for-windows-flutter
       - build-for-windows-sciter
     runs-on: ubuntu-latest
     if: ${{ inputs.upload-artifact }}
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@master
-        with:
-          name: rustdesk-unsigned-macos-x86_64
-          path: ./
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@master
-        with:
-          name: rustdesk-unsigned-macos-aarch64
-          path: ./
-
       - name: Download Artifacts
         uses: actions/download-artifact@master
         with:
@@ -804,16 +796,17 @@ jobs:
 
       - name: Combine unsigned app
         run: |
-          tar czf rustdesk-${{ env.VERSION }}-unsigned.tar.gz *.dmg windows-x86_64 windows-x86
+          tar czf rustdesk-${{ env.VERSION }}-unsigned-windows.tar.gz windows-x86_64 windows-x86
 
       - name: Publish unsigned app
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
           tag_name: ${{ env.TAG_NAME }}
-          files: rustdesk-${{ env.VERSION }}-unsigned.tar.gz
+          files: rustdesk-${{ env.VERSION }}-unsigned-windows.tar.gz
 
   build-rustdesk-android:
+    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' }}
     needs: [generate-bridge]
     name: build rustdesk android apk ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
@@ -1108,7 +1101,7 @@ jobs:
   build-rustdesk-android-universal:
     needs: [build-rustdesk-android]
     name: build rustdesk android universal apk
-    if: ${{ inputs.upload-artifact }}
+    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
     runs-on: ubuntu-24.04
     env:
       reltype: release
@@ -1290,6 +1283,7 @@ jobs:
             signed-apk/rustdesk-${{ env.VERSION }}-universal${{ env.suffix }}.apk
 
   build-rustdesk-linux:
+    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' }}
     needs: [generate-bridge]
     name: build rustdesk linux ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.on }}
@@ -1627,7 +1621,7 @@ jobs:
             res/rustdesk-${{ env.VERSION }}*.zst
 
   build-rustdesk-linux-sciter:
-    if: ${{ inputs.upload-artifact }}
+    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
     runs-on: ${{ matrix.job.on }}
     name: build-rustdesk-linux-sciter ${{ matrix.job.target }}
     strategy:
@@ -1857,7 +1851,7 @@ jobs:
     name: Build appimage ${{ matrix.job.target }}
     needs: [build-rustdesk-linux]
     runs-on: ubuntu-22.04
-    if: ${{ inputs.upload-artifact }}
+    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
     strategy:
       fail-fast: false
       matrix:
@@ -1909,7 +1903,7 @@ jobs:
       - build-rustdesk-linux
       - build-rustdesk-linux-sciter
     runs-on: ${{ matrix.job.on }}
-    if: ${{ inputs.upload-artifact }}
+    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
     strategy:
       fail-fast: false
       matrix:

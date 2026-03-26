@@ -60,6 +60,10 @@ pub const PLATFORM_LINUX: &str = "Linux";
 pub const PLATFORM_MACOS: &str = "Mac OS";
 pub const PLATFORM_ANDROID: &str = "Android";
 
+const DEFAULT_ID_SERVER: Option<&str> = option_env!("RUSTDESK_DEFAULT_ID_SERVER");
+const DEFAULT_RELAY_SERVER: Option<&str> = option_env!("RUSTDESK_DEFAULT_RELAY_SERVER");
+const DEFAULT_KEY: Option<&str> = option_env!("RUSTDESK_DEFAULT_KEY");
+
 pub const TIMER_OUT: Duration = Duration::from_secs(1);
 pub const DEFAULT_KEEP_ALIVE: i32 = 60_000;
 
@@ -1038,6 +1042,10 @@ pub fn get_custom_rendezvous_server(custom: String) -> String {
     if !custom.is_empty() {
         return custom;
     }
+    let default_host = get_default_server_option("custom-rendezvous-server");
+    if !default_host.is_empty() {
+        return default_host;
+    }
     if !config::PROD_RENDEZVOUS_SERVER.read().unwrap().is_empty() {
         return config::PROD_RENDEZVOUS_SERVER.read().unwrap().clone();
     }
@@ -1530,6 +1538,9 @@ pub async fn get_key(sync: bool) -> String {
         options.remove("key").unwrap_or_default()
     };
     if key.is_empty() {
+        key = get_default_server_option("key");
+    }
+    if key.is_empty() {
         key = config::RS_PUB_KEY.to_owned();
     }
     key
@@ -1978,6 +1989,20 @@ pub fn get_builtin_option(key: &str) -> String {
         .unwrap()
         .get(key)
         .cloned()
+        .unwrap_or_default()
+}
+
+#[inline]
+pub fn get_default_server_option(key: &str) -> String {
+    let raw = match key {
+        "custom-rendezvous-server" => DEFAULT_ID_SERVER,
+        "relay-server" => DEFAULT_RELAY_SERVER,
+        "key" => DEFAULT_KEY,
+        _ => None,
+    };
+    raw.map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
         .unwrap_or_default()
 }
 

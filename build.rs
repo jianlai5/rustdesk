@@ -77,8 +77,18 @@ fn install_android_deps() {
     println!("cargo:rustc-link-lib=OpenSLES");
 }
 
+fn export_default_server_env(name: &str) {
+    println!("cargo:rerun-if-env-changed={name}");
+    if let Ok(value) = std::env::var(name) {
+        println!("cargo:rustc-env={name}={value}");
+    }
+}
+
 fn main() {
     hbb_common::gen_version();
+    export_default_server_env("RUSTDESK_DEFAULT_ID_SERVER");
+    export_default_server_env("RUSTDESK_DEFAULT_RELAY_SERVER");
+    export_default_server_env("RUSTDESK_DEFAULT_KEY");
     install_android_deps();
     #[cfg(all(windows, feature = "inline"))]
     build_manifest();

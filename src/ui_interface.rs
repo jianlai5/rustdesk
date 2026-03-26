@@ -161,18 +161,25 @@ pub fn refresh_options() {
 
 #[inline]
 pub fn get_option<T: AsRef<str>>(key: T) -> String {
+    let key = key.as_ref();
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         let map = OPTIONS.lock().unwrap();
-        if let Some(v) = map.get(key.as_ref()) {
-            v.to_owned()
+        let value = map.get(key).cloned().unwrap_or_default();
+        if value.is_empty() {
+            crate::get_default_server_option(key)
         } else {
-            "".to_owned()
+            value
         }
     }
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
-        Config::get_option(key.as_ref())
+        let value = Config::get_option(key);
+        if value.is_empty() {
+            crate::get_default_server_option(key)
+        } else {
+            value
+        }
     }
 }
 
@@ -348,6 +355,18 @@ pub fn get_options() -> String {
     let mut m = serde_json::Map::new();
     for (k, v) in options.iter() {
         m.insert(k.into(), v.to_owned().into());
+    }
+    for key in ["custom-rendezvous-server", "relay-server", "key"] {
+        if m.get(key)
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .is_empty()
+        {
+            let value = crate::get_default_server_option(key);
+            if !value.is_empty() {
+                m.insert(key.to_owned(), value.into());
+            }
+        }
     }
     serde_json::to_string(&m).unwrap_or_default()
 }
