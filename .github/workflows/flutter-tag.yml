@@ -14,5 +14,6 @@ jobs:
     uses: ./.github/workflows/flutter-build.yml
     secrets: inherit
     with:
+      build-windows-only: true
       upload-artifact: true
       upload-tag: ${{ github.ref_name }}

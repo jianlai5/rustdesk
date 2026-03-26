@@ -21,4 +21,5 @@ jobs:
   run-ci:
     uses: ./.github/workflows/flutter-build.yml
     with:
+      build-windows-only: true
       upload-artifact: false

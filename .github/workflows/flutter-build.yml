@@ -9,6 +9,9 @@ on:
       upload-tag:
         type: string
         default: "nightly"
+      build-windows-only:
+        type: boolean
+        default: true
 
 # NOTE: F-Droid builder script 'flutter/build_fdroid.sh' reads environment
 # variables from this workflow!
@@ -44,7 +47,6 @@ env:
   RUSTDESK_DEFAULT_ID_SERVER: "8.129.30.95"
   RUSTDESK_DEFAULT_RELAY_SERVER: "8.129.30.95"
   RUSTDESK_DEFAULT_KEY: "F1QKOhqiRaa0A6Y49pyFizGJPUzCX5CI9isYTaS08qo="
-  BUILD_WINDOWS_ONLY: "true"
   #signing keys env variable checks
   ANDROID_SIGNING_KEY: "${{ secrets.ANDROID_SIGNING_KEY }}"
   MACOS_P12_BASE64: "${{ secrets.MACOS_P12_BASE64 }}"
@@ -437,7 +439,7 @@ jobs:
             ./SignOutput/rustdesk-*.exe
 
   build-rustdesk-ios:
-    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
+    if: ${{ !inputs.build-windows-only && inputs.upload-artifact }}
     name: build rustdesk ios ipa
     runs-on: ${{ matrix.job.os }}
     needs: [generate-bridge]
@@ -557,7 +559,7 @@ jobs:
 
 
   build-for-macOS:
-    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' }}
+    if: ${{ !inputs.build-windows-only }}
     name: ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
     needs: [generate-bridge]
@@ -806,7 +808,7 @@ jobs:
           files: rustdesk-${{ env.VERSION }}-unsigned-windows.tar.gz
 
   build-rustdesk-android:
-    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' }}
+    if: ${{ !inputs.build-windows-only }}
     needs: [generate-bridge]
     name: build rustdesk android apk ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
@@ -1101,7 +1103,7 @@ jobs:
   build-rustdesk-android-universal:
     needs: [build-rustdesk-android]
     name: build rustdesk android universal apk
-    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
+    if: ${{ !inputs.build-windows-only && inputs.upload-artifact }}
     runs-on: ubuntu-24.04
     env:
       reltype: release
@@ -1283,7 +1285,7 @@ jobs:
             signed-apk/rustdesk-${{ env.VERSION }}-universal${{ env.suffix }}.apk
 
   build-rustdesk-linux:
-    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' }}
+    if: ${{ !inputs.build-windows-only }}
     needs: [generate-bridge]
     name: build rustdesk linux ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.on }}
@@ -1621,7 +1623,7 @@ jobs:
             res/rustdesk-${{ env.VERSION }}*.zst
 
   build-rustdesk-linux-sciter:
-    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
+    if: ${{ !inputs.build-windows-only && inputs.upload-artifact }}
     runs-on: ${{ matrix.job.on }}
     name: build-rustdesk-linux-sciter ${{ matrix.job.target }}
     strategy:
@@ -1851,7 +1853,7 @@ jobs:
     name: Build appimage ${{ matrix.job.target }}
     needs: [build-rustdesk-linux]
     runs-on: ubuntu-22.04
-    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
+    if: ${{ !inputs.build-windows-only && inputs.upload-artifact }}
     strategy:
       fail-fast: false
       matrix:
@@ -1903,7 +1905,7 @@ jobs:
       - build-rustdesk-linux
       - build-rustdesk-linux-sciter
     runs-on: ${{ matrix.job.on }}
-    if: ${{ env.BUILD_WINDOWS_ONLY != 'true' && inputs.upload-artifact }}
+    if: ${{ !inputs.build-windows-only && inputs.upload-artifact }}
     strategy:
       fail-fast: false
       matrix:
