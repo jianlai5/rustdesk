@@ -34,6 +34,7 @@ class DesktopHomePage extends StatefulWidget {
 }
 
 const borderColor = Color(0xFF2F65BA);
+const kSimpleHomeMode = true;
 
 class _DesktopHomePageState extends State<DesktopHomePage>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
@@ -60,6 +61,12 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   Widget build(BuildContext context) {
     super.build(context);
     final isIncomingOnly = bind.isIncomingOnly();
+    if (kSimpleHomeMode) {
+      return _buildBlock(
+          child: Center(
+        child: buildLeftPane(context),
+      ));
+    }
     return _buildBlock(
         child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,6 +86,23 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   Widget buildLeftPane(BuildContext context) {
     final isIncomingOnly = bind.isIncomingOnly();
     final isOutgoingOnly = bind.isOutgoingOnly();
+    if (kSimpleHomeMode) {
+      return ChangeNotifierProvider.value(
+        value: gFFI.serverModel,
+        child: Container(
+          width: 360.0,
+          color: Theme.of(context).colorScheme.background,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              buildIDBoard(context),
+              const SizedBox(height: 20),
+              const OnlineStatusWidget(simple: true),
+            ],
+          ),
+        ),
+      );
+    }
     final children = <Widget>[
       if (!isOutgoingOnly) buildPresetPasswordWarning(),
       if (bind.isCustomClient())
@@ -189,6 +213,43 @@ class _DesktopHomePageState extends State<DesktopHomePage>
 
   buildIDBoard(BuildContext context) {
     final model = gFFI.serverModel;
+    if (kSimpleHomeMode) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            Text(
+              translate("ID"),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 14,
+                  color:
+                      Theme.of(context).textTheme.titleLarge?.color?.withOpacity(0.5)),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onDoubleTap: () {
+                Clipboard.setData(ClipboardData(text: model.serverId.text));
+                showToast(translate("Copied"));
+              },
+              child: TextFormField(
+                controller: model.serverId,
+                readOnly: true,
+                textAlign: TextAlign.center,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w600,
+                ),
+              ).workaroundFreezeLinuxMint(),
+            ),
+          ],
+        ),
+      );
+    }
     return Container(
       margin: const EdgeInsets.only(left: 20, right: 11),
       height: 57,
@@ -445,6 +506,9 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 
   Widget buildHelpCards(String updateUrl) {
+    if (kSimpleHomeMode) {
+      return Container();
+    }
     if (!bind.isCustomClient() &&
         updateUrl.isNotEmpty &&
         !isCardClosed &&

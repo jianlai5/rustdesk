@@ -22,10 +22,12 @@ import '../../models/platform_model.dart';
 import '../../desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
 
 class OnlineStatusWidget extends StatefulWidget {
-  const OnlineStatusWidget({Key? key, this.onSvcStatusChanged})
+  const OnlineStatusWidget(
+      {Key? key, this.onSvcStatusChanged, this.simple = false})
       : super(key: key);
 
   final VoidCallback? onSvcStatusChanged;
+  final bool simple;
 
   @override
   State<OnlineStatusWidget> createState() => _OnlineStatusWidgetState();
@@ -111,6 +113,8 @@ class _OnlineStatusWidgetState extends State<OnlineStatusWidget> {
 
     basicWidget() => Row(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment:
+              widget.simple ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
             Container(
               height: 8,
@@ -130,10 +134,10 @@ class _OnlineStatusWidgetState extends State<OnlineStatusWidget> {
               child: _buildConnStatusMsg(),
             ),
             // stop
-            if (!isIncomingOnly) startServiceWidget(),
+            if (!isIncomingOnly && !widget.simple) startServiceWidget(),
             // ready && public
             // No need to show the guide if is custom client.
-            if (!isIncomingOnly) setupServerWidget(),
+            if (!isIncomingOnly && !widget.simple) setupServerWidget(),
           ],
         );
 
