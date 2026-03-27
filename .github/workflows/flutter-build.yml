@@ -44,8 +44,8 @@ env:
   ARMV7_VCPKG_COMMIT_ID: "6f29f12e82a8293156836ad81cc9bf5af41fe836" # 2025.01.13, got "/opt/artifacts/vcpkg/vcpkg: No such file or directory" with latest version
   VERSION: "1.4.6"
   NDK_VERSION: "r28c"
-  RUSTDESK_DEFAULT_ID_SERVER: "120.24.26.152"
-  RUSTDESK_DEFAULT_RELAY_SERVER: "120.24.26.152"
+  RUSTDESK_DEFAULT_ID_SERVER: "rd.et0731.com"
+  RUSTDESK_DEFAULT_RELAY_SERVER: "rd.et0731.com"
   RUSTDESK_DEFAULT_KEY: "t7Ld6FFK5NjN2460gfxIP7rA6iOFs9BEUgBklebcE00="
   RUSTDESK_FIXED_TEMP_PASSWORD: "ur4J5EXi"
   #signing keys env variable checks
