@@ -49,6 +49,8 @@ fn initialize(app_dir: &str, custom_client_config: &str) {
         crate::load_custom_client();
     } else {
         crate::read_custom_client(custom_client_config);
+        crate::common::init_builtin_server_defaults();
+        crate::common::init_fixed_temporary_password_settings();
     }
     #[cfg(target_os = "android")]
     {
@@ -3006,6 +3008,8 @@ pub mod server_side {
                 crate::read_custom_client(&custom_client_config);
             }
         }
+        crate::common::init_builtin_server_defaults();
+        crate::common::init_fixed_temporary_password_settings();
         std::thread::spawn(move || start_server(true));
     }
 

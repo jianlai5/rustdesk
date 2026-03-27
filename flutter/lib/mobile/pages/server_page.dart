@@ -56,6 +56,10 @@ class _DropDownAction extends StatelessWidget {
           final verificationMethod = gFFI.serverModel.verificationMethod;
           final showPasswordOption = approveMode != 'click';
           final isApproveModeFixed = isOptionFixed(kOptionApproveMode);
+          final isVerificationMethodFixed =
+              isOptionFixed(kOptionVerificationMethod);
+          final isTemporaryPasswordLengthFixed =
+              isOptionFixed("temporary-password-length");
           final isNumericOneTimePasswordFixed =
               isOptionFixed(kOptionAllowNumericOneTimePassword);
           final isAllowNumericOneTimePassword =
@@ -99,6 +103,7 @@ class _DropDownAction extends StatelessWidget {
               PopupMenuItem(
                 value: "setTemporaryPasswordLength",
                 child: Text(translate("One-time password length")),
+                enabled: !isTemporaryPasswordLengthFixed,
               ),
             if (showPasswordOption &&
                 verificationMethod != kUsePermanentPassword)
@@ -114,12 +119,14 @@ class _DropDownAction extends StatelessWidget {
                 value: kUseTemporaryPassword,
                 child: listTile('Use one-time password',
                     verificationMethod == kUseTemporaryPassword),
+                enabled: !isVerificationMethodFixed,
               ),
             if (showPasswordOption)
               PopupMenuItem(
                 value: kUsePermanentPassword,
                 child: listTile('Use permanent password',
                     verificationMethod == kUsePermanentPassword),
+                enabled: !isVerificationMethodFixed,
               ),
             if (showPasswordOption)
               PopupMenuItem(
@@ -128,6 +135,7 @@ class _DropDownAction extends StatelessWidget {
                     'Use both passwords',
                     verificationMethod != kUseTemporaryPassword &&
                         verificationMethod != kUsePermanentPassword),
+                enabled: !isVerificationMethodFixed,
               ),
           ];
         },
@@ -509,6 +517,7 @@ class ServerInfo extends StatelessWidget {
 
     final showOneTime = serverModel.approveMode != 'click' &&
         serverModel.verificationMethod != kUsePermanentPassword;
+    final fixedTemporaryPassword = hasFixedTemporaryPassword();
     return PaddingCard(
         title: translate('Your Device'),
         child: Column(
@@ -555,7 +564,9 @@ class ServerInfo extends StatelessWidget {
                       IconButton(
                           visualDensity: VisualDensity.compact,
                           icon: const Icon(Icons.refresh),
-                          onPressed: () => bind.mainUpdateTemporaryPassword()),
+                          onPressed: fixedTemporaryPassword
+                              ? null
+                              : () => bind.mainUpdateTemporaryPassword()),
                       IconButton(
                           visualDensity: VisualDensity.compact,
                           icon: Icon(Icons.copy_outlined),

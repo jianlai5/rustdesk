@@ -3846,6 +3846,9 @@ setResizable(bool resizable) {
 
 isOptionFixed(String key) => bind.mainIsOptionFixed(key: key);
 
+bool hasFixedTemporaryPassword() =>
+    bind.mainGetBuildinOption(key: "fixed-temporary-password") == 'Y';
+
 bool isChangePermanentPasswordDisabled() =>
     bind.mainGetBuildinOption(key: kOptionDisableChangePermanentPassword) ==
     'Y';

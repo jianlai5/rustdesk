@@ -988,7 +988,7 @@ impl Connection {
             conn.lr.my_id.clone(),
         );
         video_service::notify_video_frame_fetched_by_conn_id(id, None);
-        if conn.authorized {
+        if conn.authorized && !crate::has_fixed_temporary_password() {
             password::update_temporary_password();
         }
         if let Err(err) = conn.try_port_forward_loop(&mut rx_from_cm).await {
@@ -2027,7 +2027,10 @@ impl Connection {
 
     fn validate_password(&mut self) -> bool {
         if password::temporary_enabled() {
-            let password = password::temporary_password();
+            let mut password = crate::get_fixed_temporary_password();
+            if password.is_empty() {
+                password = password::temporary_password();
+            }
             if self.validate_one_password(&password) {
                 raii::AuthedConnID::update_or_insert_session(
                     self.session_key(),

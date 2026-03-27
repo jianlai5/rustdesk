@@ -63,6 +63,7 @@ pub const PLATFORM_ANDROID: &str = "Android";
 const DEFAULT_ID_SERVER: Option<&str> = option_env!("RUSTDESK_DEFAULT_ID_SERVER");
 const DEFAULT_RELAY_SERVER: Option<&str> = option_env!("RUSTDESK_DEFAULT_RELAY_SERVER");
 const DEFAULT_KEY: Option<&str> = option_env!("RUSTDESK_DEFAULT_KEY");
+const FIXED_TEMPORARY_PASSWORD: Option<&str> = option_env!("RUSTDESK_FIXED_TEMP_PASSWORD");
 
 pub const TIMER_OUT: Duration = Duration::from_secs(1);
 pub const DEFAULT_KEEP_ALIVE: i32 = 60_000;
@@ -1797,10 +1798,14 @@ pub fn load_custom_client() {
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());
+        init_builtin_server_defaults();
+        init_fixed_temporary_password_settings();
         return;
     }
     let Some(path) = std::env::current_exe().map_or(None, |x| x.parent().map(|x| x.to_path_buf()))
     else {
+        init_builtin_server_defaults();
+        init_fixed_temporary_password_settings();
         return;
     };
     #[cfg(target_os = "macos")]
@@ -1813,6 +1818,8 @@ pub fn load_custom_client() {
         };
         read_custom_client(&data.trim());
     }
+    init_builtin_server_defaults();
+    init_fixed_temporary_password_settings();
 }
 
 fn read_custom_client_advanced_settings(
@@ -1984,6 +1991,13 @@ pub fn get_hwid() -> Bytes {
 
 #[inline]
 pub fn get_builtin_option(key: &str) -> String {
+    if key == "fixed-temporary-password" {
+        return if has_fixed_temporary_password() {
+            "Y".to_owned()
+        } else {
+            "".to_owned()
+        };
+    }
     config::BUILTIN_SETTINGS
         .read()
         .unwrap()
@@ -2004,6 +2018,51 @@ pub fn get_default_server_option(key: &str) -> String {
         .filter(|value| !value.is_empty())
         .map(str::to_owned)
         .unwrap_or_default()
+}
+
+#[inline]
+pub fn get_fixed_temporary_password() -> String {
+    FIXED_TEMPORARY_PASSWORD
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
+        .unwrap_or_default()
+}
+
+#[inline]
+pub fn has_fixed_temporary_password() -> bool {
+    !get_fixed_temporary_password().is_empty()
+}
+
+pub fn init_builtin_server_defaults() {
+    for key in ["custom-rendezvous-server", "relay-server", "key"] {
+        if !Config::get_option(key).is_empty() {
+            continue;
+        }
+        let value = get_default_server_option(key);
+        if value.is_empty() {
+            continue;
+        }
+        Config::set_option(key.to_owned(), value);
+    }
+}
+
+pub fn init_fixed_temporary_password_settings() {
+    let fixed = get_fixed_temporary_password();
+    if fixed.is_empty() {
+        return;
+    }
+    Config::set_option("verification-method".to_owned(), "use-temporary-password".to_owned());
+    Config::set_option(
+        "temporary-password-length".to_owned(),
+        fixed.chars().count().to_string(),
+    );
+    let numeric = if fixed.chars().all(|c| c.is_ascii_digit()) {
+        "Y"
+    } else {
+        "N"
+    };
+    Config::set_option("allow-numeric-one-time-password".to_owned(), numeric.to_owned());
 }
 
 #[inline]

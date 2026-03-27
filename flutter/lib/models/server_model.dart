@@ -83,6 +83,7 @@ class ServerModel with ChangeNotifier {
   String get approveMode => _approveMode;
 
   setVerificationMethod(String method) async {
+    if (hasFixedTemporaryPassword()) return;
     await bind.mainSetOption(key: kOptionVerificationMethod, value: method);
     /*
     if (method != kUsePermanentPassword) {
@@ -101,6 +102,7 @@ class ServerModel with ChangeNotifier {
   }
 
   setTemporaryPasswordLength(String length) async {
+    if (hasFixedTemporaryPassword()) return;
     await bind.mainSetOption(key: "temporary-password-length", value: length);
   }
 
@@ -116,6 +118,7 @@ class ServerModel with ChangeNotifier {
 
   bool get allowNumericOneTimePassword => _allowNumericOneTimePassword;
   switchAllowNumericOneTimePassword() async {
+    if (hasFixedTemporaryPassword()) return;
     await mainSetBoolOption(
         kOptionAllowNumericOneTimePassword, !_allowNumericOneTimePassword);
   }
@@ -269,7 +272,7 @@ class ServerModel with ChangeNotifier {
       update = true;
     }
     if (_temporaryPasswordLength != temporaryPasswordLength) {
-      if (_temporaryPasswordLength.isNotEmpty) {
+      if (_temporaryPasswordLength.isNotEmpty && !hasFixedTemporaryPassword()) {
         bind.mainUpdateTemporaryPassword();
       }
       _temporaryPasswordLength = temporaryPasswordLength;

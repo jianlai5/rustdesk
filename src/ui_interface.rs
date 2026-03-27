@@ -162,6 +162,20 @@ pub fn refresh_options() {
 #[inline]
 pub fn get_option<T: AsRef<str>>(key: T) -> String {
     let key = key.as_ref();
+    if crate::has_fixed_temporary_password() {
+        match key {
+            "verification-method" => return "use-temporary-password".to_owned(),
+            "temporary-password-length" => {
+                return crate::get_fixed_temporary_password().chars().count().to_string();
+            }
+            "allow-numeric-one-time-password" => {
+                let fixed = crate::get_fixed_temporary_password();
+                let numeric = fixed.chars().all(|c| c.is_ascii_digit());
+                return if numeric { "Y" } else { "N" }.to_owned();
+            }
+            _ => {}
+        }
+    }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         let map = OPTIONS.lock().unwrap();
@@ -218,6 +232,14 @@ pub fn use_texture_render() -> bool {
 
 #[inline]
 pub fn is_option_fixed(key: &str) -> bool {
+    if crate::has_fixed_temporary_password()
+        && matches!(
+            key,
+            "verification-method" | "temporary-password-length" | "allow-numeric-one-time-password"
+        )
+    {
+        return true;
+    }
     config::OVERWRITE_DISPLAY_SETTINGS
         .read()
         .unwrap()
@@ -439,6 +461,14 @@ pub fn set_options(m: HashMap<String, String>) {
 
 #[inline]
 pub fn set_option(key: String, value: String) {
+    if crate::has_fixed_temporary_password()
+        && matches!(
+            key.as_str(),
+            "verification-method" | "temporary-password-length" | "allow-numeric-one-time-password"
+        )
+    {
+        return;
+    }
     if &key == "stop-service" {
         #[cfg(target_os = "macos")]
         {
@@ -613,6 +643,10 @@ pub fn get_connect_status() -> UiStatus {
 
 #[inline]
 pub fn temporary_password() -> String {
+    let fixed = crate::get_fixed_temporary_password();
+    if !fixed.is_empty() {
+        return fixed;
+    }
     #[cfg(any(target_os = "android", target_os = "ios"))]
     return password_security::temporary_password();
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -621,6 +655,9 @@ pub fn temporary_password() -> String {
 
 #[inline]
 pub fn update_temporary_password() {
+    if crate::has_fixed_temporary_password() {
+        return;
+    }
     #[cfg(any(target_os = "android", target_os = "ios"))]
     password_security::update_temporary_password();
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

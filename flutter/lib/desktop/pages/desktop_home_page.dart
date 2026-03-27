@@ -296,6 +296,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     final textColor = Theme.of(context).textTheme.titleLarge?.color;
     final showOneTime = model.approveMode != 'click' &&
         model.verificationMethod != kUsePermanentPassword;
+    final fixedTemporaryPassword = hasFixedTemporaryPassword();
     return Container(
       margin: EdgeInsets.only(left: 20.0, right: 16, top: 13, bottom: 13),
       child: Row(
@@ -344,20 +345,26 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                       ),
                       if (showOneTime)
                         AnimatedRotationWidget(
-                          onPressed: () => bind.mainUpdateTemporaryPassword(),
+                          onPressed: fixedTemporaryPassword
+                              ? null
+                              : () => bind.mainUpdateTemporaryPassword(),
                           child: Tooltip(
                             message: translate('Refresh Password'),
                             child: Obx(() => RotatedBox(
                                 quarterTurns: 2,
                                 child: Icon(
                                   Icons.refresh,
-                                  color: refreshHover.value
+                                  color: fixedTemporaryPassword
+                                      ? const Color(0xFFDDDDDD)
+                                      : refreshHover.value
                                       ? textColor
                                       : Color(0xFFDDDDDD),
                                   size: 22,
                                 ))),
                           ),
-                          onHover: (value) => refreshHover.value = value,
+                          onHover: fixedTemporaryPassword
+                              ? null
+                              : (value) => refreshHover.value = value,
                         ).marginOnly(right: 8, top: 4),
                       if (!bind.isDisableSettings())
                         InkWell(

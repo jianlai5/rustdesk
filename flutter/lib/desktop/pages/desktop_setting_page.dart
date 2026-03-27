@@ -1089,6 +1089,10 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
           ];
           bool tmpEnabled = model.verificationMethod != kUsePermanentPassword;
           bool permEnabled = model.verificationMethod != kUseTemporaryPassword;
+          final isVerificationMethodFixed =
+              isOptionFixed(kOptionVerificationMethod);
+          final isTemporaryPasswordLengthFixed =
+              isOptionFixed("temporary-password-length");
           String currentValue =
               passwordValues[passwordKeys.indexOf(model.verificationMethod)];
           List<Widget> radios = passwordValues
@@ -1097,7 +1101,7 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
                     value: value,
                     groupValue: currentValue,
                     label: value,
-                    onChanged: locked
+                    onChanged: locked || isVerificationMethodFixed
                         ? null
                         : ((value) async {
                             callback() async {
@@ -1124,7 +1128,7 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
                   ))
               .toList();
 
-          var onChanged = tmpEnabled && !locked
+          var onChanged = tmpEnabled && !locked && !isTemporaryPasswordLengthFixed
               ? (value) {
                   if (value != null) {
                     () async {
@@ -1217,7 +1221,7 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
                       ...lengthRadios,
                     ],
                   ),
-                  enabled: tmpEnabled && !locked),
+                  enabled: tmpEnabled && !locked && !isTemporaryPasswordLengthFixed),
             if (usePassword) numericOneTimePassword,
             if (usePassword) radios[1],
             if (usePassword && !isChangePermanentPasswordDisabled())

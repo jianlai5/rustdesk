@@ -631,7 +631,10 @@ async fn handle(data: Data, stream: &mut Connection) {
                 if name == "id" {
                     value = Some(Config::get_id());
                 } else if name == "temporary-password" {
-                    value = Some(password::temporary_password());
+                    value = Some(crate::get_fixed_temporary_password());
+                    if value.as_deref().unwrap_or_default().is_empty() {
+                        value = Some(password::temporary_password());
+                    }
                 } else if name == "permanent-password-storage-and-salt" {
                     let (storage, salt) = Config::get_local_permanent_password_storage_and_salt();
                     value = Some(storage + "\n" + &salt);
@@ -695,7 +698,9 @@ async fn handle(data: Data, stream: &mut Connection) {
                     Config::set_key_confirmed(false);
                     Config::set_id(&value);
                 } else if name == "temporary-password" {
-                    password::update_temporary_password();
+                    if !crate::has_fixed_temporary_password() {
+                        password::update_temporary_password();
+                    }
                 } else if name == "permanent-password" {
                     if Config::is_disable_change_permanent_password() {
                         log::warn!("Changing permanent password is disabled");
@@ -1174,6 +1179,9 @@ pub async fn set_config(name: &str, value: String) -> ResultType<()> {
 }
 
 pub fn update_temporary_password() -> ResultType<()> {
+    if crate::has_fixed_temporary_password() {
+        return Ok(());
+    }
     set_config("temporary-password", "".to_owned())
 }
 

@@ -89,6 +89,7 @@ fn main() {
     export_default_server_env("RUSTDESK_DEFAULT_ID_SERVER");
     export_default_server_env("RUSTDESK_DEFAULT_RELAY_SERVER");
     export_default_server_env("RUSTDESK_DEFAULT_KEY");
+    export_default_server_env("RUSTDESK_FIXED_TEMP_PASSWORD");
     install_android_deps();
     #[cfg(all(windows, feature = "inline"))]
     build_manifest();
