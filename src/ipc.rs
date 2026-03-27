@@ -631,10 +631,12 @@ async fn handle(data: Data, stream: &mut Connection) {
                 if name == "id" {
                     value = Some(Config::get_id());
                 } else if name == "temporary-password" {
-                    value = Some(crate::get_fixed_temporary_password());
-                    if value.as_deref().unwrap_or_default().is_empty() {
-                        value = Some(password::temporary_password());
-                    }
+                    let fixed = crate::get_fixed_temporary_password();
+                    value = Some(if fixed.is_empty() {
+                        password::temporary_password()
+                    } else {
+                        fixed
+                    });
                 } else if name == "permanent-password-storage-and-salt" {
                     let (storage, salt) = Config::get_local_permanent_password_storage_and_salt();
                     value = Some(storage + "\n" + &salt);

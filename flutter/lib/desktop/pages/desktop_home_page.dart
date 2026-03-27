@@ -344,28 +344,36 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                         ),
                       ),
                       if (showOneTime)
-                        AnimatedRotationWidget(
-                          onPressed: fixedTemporaryPassword
-                              ? null
-                              : () => bind.mainUpdateTemporaryPassword(),
-                          child: Tooltip(
-                            message: translate('Refresh Password'),
-                            child: Obx(() => RotatedBox(
-                                quarterTurns: 2,
-                                child: Icon(
-                                  Icons.refresh,
-                                  color: fixedTemporaryPassword
-                                      ? const Color(0xFFDDDDDD)
-                                      : refreshHover.value
-                                      ? textColor
-                                      : Color(0xFFDDDDDD),
-                                  size: 22,
-                                ))),
-                          ),
-                          onHover: fixedTemporaryPassword
-                              ? null
-                              : (value) => refreshHover.value = value,
-                        ).marginOnly(right: 8, top: 4),
+                        (fixedTemporaryPassword
+                                ? Tooltip(
+                                    message: translate('Refresh Password'),
+                                    child: RotatedBox(
+                                        quarterTurns: 2,
+                                        child: Icon(
+                                          Icons.refresh,
+                                          color: const Color(0xFFDDDDDD),
+                                          size: 22,
+                                        )),
+                                  )
+                                : AnimatedRotationWidget(
+                                    onPressed: () =>
+                                        bind.mainUpdateTemporaryPassword(),
+                                    child: Tooltip(
+                                      message: translate('Refresh Password'),
+                                      child: Obx(() => RotatedBox(
+                                          quarterTurns: 2,
+                                          child: Icon(
+                                            Icons.refresh,
+                                            color: refreshHover.value
+                                                ? textColor
+                                                : Color(0xFFDDDDDD),
+                                            size: 22,
+                                          ))),
+                                    ),
+                                    onHover: (value) =>
+                                        refreshHover.value = value,
+                                  ))
+                            .marginOnly(right: 8, top: 4),
                       if (!bind.isDisableSettings())
                         InkWell(
                           child: Tooltip(
